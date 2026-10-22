@@ -646,7 +646,7 @@ export default function App() {
         const updatedVal = Number(value.toFixed(1)).toString();
         const updatedMap = { ...setWeights, [key]: updatedVal };
         setSetWeights(updatedMap);
-        syncDataToCloud({ setWeights: updatedMap });
+        syncDataToCloud({ setSetWeights: updatedMap });
     };
 
     const adjustReps = (exerciseId, setIndex, delta) => {
@@ -656,7 +656,7 @@ export default function App() {
         const updatedVal = value.toString();
         const updatedMap = { ...setReps, [key]: updatedVal };
         setSetReps(updatedMap);
-        syncDataToCloud({ setReps: updatedMap });
+        syncDataToCloud({ setSetReps: updatedMap });
     };
 
     const toggleSetComplete = (exerciseId, setIndex, exName, defaultSec) => {
@@ -1008,12 +1008,12 @@ export default function App() {
                             </div>
                         </div>
 
-                        {/* Clear Stored Data Action moved to Insights Tab */}
+                        {/* Clear Stored Data Action in Insights Tab */}
                         <div className="pt-6 pb-2 flex flex-col items-center justify-center">
                             <button
                                 type="button"
                                 onClick={() => setShowClearConfirmModal(true)}
-                                className="px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-bold text-xs flex items-center gap-2 transition-all active:scale-95"
+                                className="px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-bold text-xs flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
                             >
                                 <TrashIcon />
                                 <span>Clear All Stored Data</span>
@@ -1069,7 +1069,7 @@ export default function App() {
                                                         setActiveTab(day.id);
                                                         startWorkoutDay(day.id);
                                                     }}
-                                                    className="w-full sm:w-auto px-4 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 active:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm"
+                                                    className="w-full sm:w-auto px-4 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 active:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm cursor-pointer"
                                                 >
                                                     <PlayIcon />
                                                     <span>Start Workout</span>
@@ -1078,7 +1078,7 @@ export default function App() {
                                                 <button
                                                     type="button"
                                                     onClick={() => finishWorkoutDay(day.id)}
-                                                    className="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-pink-500/20"
+                                                    className="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-pink-500/20 cursor-pointer"
                                                 >
                                                     <CheckCircleIcon />
                                                     <span>Finish Workout</span>
@@ -1164,7 +1164,7 @@ export default function App() {
                                                                         <button
                                                                             type="button"
                                                                             onClick={() => handleStartEditingTimer(ex)}
-                                                                            className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 hover:text-indigo-300 text-xs font-bold transition-all active:scale-95 shrink-0"
+                                                                            className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 hover:text-indigo-300 text-xs font-bold transition-all active:scale-95 shrink-0 cursor-pointer"
                                                                             title="Click to adjust rest time"
                                                                         >
                                                                             <ClockIcon />
@@ -1194,7 +1194,8 @@ export default function App() {
                                                                     <span className="text-[11px] text-gray-500 font-normal">Weight & Reps</span>
                                                                 </div>
 
-                                                                <div className="space-y-2.5 pt-1">
+                                                                {}
+                                                                <div className="space-y-3 pt-1">
                                                                     {Array.from({ length: ex.sets }).map((_, i) => {
                                                                         const setKey = `${ex.id}_set_${i}`;
                                                                         const isDone = !!completedSets[setKey];
@@ -1204,100 +1205,101 @@ export default function App() {
                                                                         return (
                                                                             <div 
                                                                                 key={i} 
-                                                                                className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-2.5 sm:p-3 rounded-lg border transition-all ${
+                                                                                className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 p-3 rounded-lg border transition-all ${
                                                                                     isDone 
                                                                                         ? 'bg-pink-500/10 border-pink-500/30' 
                                                                                         : 'bg-[#0f0f13] border-gray-800/80'
                                                                                 }`}
                                                                             >
-                                                                                {/* Top Row: Set Number & Inputs Centered */}
-                                                                                <div className="flex items-center justify-between gap-2 w-full sm:w-auto">
+                                                                                {/* ROW 1 (Mobile): Set Label */}
+                                                                                <div className="flex items-center justify-between sm:justify-start">
                                                                                     <span className="text-xs font-bold text-gray-300 w-12 shrink-0">
                                                                                         Set {i + 1}
                                                                                     </span>
-
-                                                                                    {isSessionActive ? (
-                                                                                        <div className="flex items-center justify-center gap-2 flex-1 sm:flex-initial">
-                                                                                            {/* Weight Stepper */}
-                                                                                            <div className="flex items-center justify-center gap-0.5 bg-[#181822] rounded-md p-0.5 border border-gray-700/80 shrink-0">
-                                                                                                <button
-                                                                                                    type="button"
-                                                                                                    onClick={() => adjustWeight(ex.id, i, -2.5)}
-                                                                                                    className="w-6 h-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 active:bg-pink-600 rounded text-gray-300 hover:text-white transition-colors"
-                                                                                                >
-                                                                                                    <MinusIcon />
-                                                                                                </button>
-
-                                                                                                <div className="flex items-center justify-center px-1">
-                                                                                                    <input
-                                                                                                        type="number"
-                                                                                                        step="0.5"
-                                                                                                        min="0"
-                                                                                                        value={weightValue}
-                                                                                                        onChange={(e) => handleSetWeightChange(ex.id, i, e.target.value)}
-                                                                                                        placeholder="0"
-                                                                                                        className="w-9 bg-transparent border-none p-0 text-xs font-bold text-white text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                                                                                    />
-                                                                                                    <span className="text-[10px] font-bold text-gray-400 ml-0.5 select-none">
-                                                                                                        kg
-                                                                                                    </span>
-                                                                                                </div>
-
-                                                                                                <button
-                                                                                                    type="button"
-                                                                                                    onClick={() => adjustWeight(ex.id, i, 2.5)}
-                                                                                                    className="w-6 h-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 active:bg-pink-600 rounded text-gray-300 hover:text-white transition-colors"
-                                                                                                >
-                                                                                                    <PlusIcon />
-                                                                                                </button>
-                                                                                            </div>
-
-                                                                                            {/* Reps Stepper */}
-                                                                                            <div className="flex items-center justify-center gap-0.5 bg-[#181822] rounded-md p-0.5 border border-gray-700/80 shrink-0">
-                                                                                                <button
-                                                                                                    type="button"
-                                                                                                    onClick={() => adjustReps(ex.id, i, -1)}
-                                                                                                    className="w-6 h-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 active:bg-pink-600 rounded text-gray-300 hover:text-white transition-colors"
-                                                                                                >
-                                                                                                    <MinusIcon />
-                                                                                                </button>
-
-                                                                                                <div className="flex items-center justify-center px-1">
-                                                                                                    <input
-                                                                                                        type="number"
-                                                                                                        min="0"
-                                                                                                        value={repsValue}
-                                                                                                        onChange={(e) => handleSetRepsChange(ex.id, i, e.target.value)}
-                                                                                                        placeholder="0"
-                                                                                                        className="w-8 bg-transparent border-none p-0 text-xs font-bold text-white text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                                                                                    />
-                                                                                                    <span className="text-[10px] font-bold text-gray-400 ml-0.5 select-none whitespace-nowrap">
-                                                                                                        reps
-                                                                                                    </span>
-                                                                                                </div>
-
-                                                                                                <button
-                                                                                                    type="button"
-                                                                                                    onClick={() => adjustReps(ex.id, i, 1)}
-                                                                                                    className="w-6 h-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 active:bg-pink-600 rounded text-gray-300 hover:text-white transition-colors"
-                                                                                                >
-                                                                                                    <PlusIcon />
-                                                                                                </button>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    ) : (
-                                                                                        <div className="text-xs text-gray-500 italic">
-                                                                                            Start workout to log sets
-                                                                                        </div>
-                                                                                    )}
                                                                                 </div>
 
-                                                                                {/* Bottom Row on Mobile / Inline on Desktop */}
+                                                                                {/* ROW 2 (Mobile): Weight & Reps Stepper Controls */}
+                                                                                {isSessionActive ? (
+                                                                                    <div className="flex items-center justify-center gap-3 w-full sm:w-auto my-1 sm:my-0">
+                                                                                        {/* Weight Stepper */}
+                                                                                        <div className="flex items-center justify-center gap-0.5 bg-[#181822] rounded-md p-1 border border-gray-700/80 shrink-0">
+                                                                                            <button
+                                                                                                type="button"
+                                                                                                onClick={() => adjustWeight(ex.id, i, -2.5)}
+                                                                                                className="w-6 h-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 active:bg-pink-600 rounded text-gray-300 hover:text-white transition-colors cursor-pointer"
+                                                                                            >
+                                                                                                <MinusIcon />
+                                                                                            </button>
+
+                                                                                            <div className="flex items-center justify-center px-1">
+                                                                                                <input
+                                                                                                    type="number"
+                                                                                                    step="0.5"
+                                                                                                    min="0"
+                                                                                                    value={weightValue}
+                                                                                                    onChange={(e) => handleSetWeightChange(ex.id, i, e.target.value)}
+                                                                                                    placeholder="0"
+                                                                                                    className="w-10 bg-transparent border-none p-0 text-xs font-bold text-white text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                                                                />
+                                                                                                <span className="text-[10px] font-bold text-gray-400 ml-0.5 select-none">
+                                                                                                    kg
+                                                                                                </span>
+                                                                                            </div>
+
+                                                                                            <button
+                                                                                                type="button"
+                                                                                                onClick={() => adjustWeight(ex.id, i, 2.5)}
+                                                                                                className="w-6 h-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 active:bg-pink-600 rounded text-gray-300 hover:text-white transition-colors cursor-pointer"
+                                                                                            >
+                                                                                                <PlusIcon />
+                                                                                            </button>
+                                                                                        </div>
+
+                                                                                        {/* Reps Stepper */}
+                                                                                        <div className="flex items-center justify-center gap-0.5 bg-[#181822] rounded-md p-1 border border-gray-700/80 shrink-0">
+                                                                                            <button
+                                                                                                type="button"
+                                                                                                onClick={() => adjustReps(ex.id, i, -1)}
+                                                                                                className="w-6 h-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 active:bg-pink-600 rounded text-gray-300 hover:text-white transition-colors cursor-pointer"
+                                                                                            >
+                                                                                                <MinusIcon />
+                                                                                            </button>
+
+                                                                                            <div className="flex items-center justify-center px-1">
+                                                                                                <input
+                                                                                                    type="number"
+                                                                                                    min="0"
+                                                                                                    value={repsValue}
+                                                                                                    onChange={(e) => handleSetRepsChange(ex.id, i, e.target.value)}
+                                                                                                    placeholder="0"
+                                                                                                    className="w-9 bg-transparent border-none p-0 text-xs font-bold text-white text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                                                                />
+                                                                                                <span className="text-[10px] font-bold text-gray-400 ml-0.5 select-none whitespace-nowrap">
+                                                                                                    reps
+                                                                                                </span>
+                                                                                            </div>
+
+                                                                                            <button
+                                                                                                type="button"
+                                                                                                onClick={() => adjustReps(ex.id, i, 1)}
+                                                                                                className="w-6 h-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 active:bg-pink-600 rounded text-gray-300 hover:text-white transition-colors cursor-pointer"
+                                                                                            >
+                                                                                                <PlusIcon />
+                                                                                            </button>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                ) : (
+                                                                                    <div className="text-xs text-gray-500 italic py-1 sm:py-0">
+                                                                                        Start workout to log sets
+                                                                                    </div>
+                                                                                )}
+
+                                                                                {/* ROW 3 (Mobile): Full-width Log Set / Done Button */}
                                                                                 {isSessionActive && (
                                                                                     <button
                                                                                         type="button"
                                                                                         onClick={() => toggleSetComplete(ex.id, i, ex.name, getExerciseTimerSec(ex))}
-                                                                                        className={`w-full sm:w-20 h-10 sm:h-8 flex items-center justify-center gap-1.5 rounded-lg text-xs font-bold transition-all active:scale-95 shrink-0 ${
+                                                                                        className={`w-full sm:w-20 h-10 sm:h-8 flex items-center justify-center gap-1.5 rounded-lg text-xs font-bold transition-all active:scale-95 shrink-0 mt-1 sm:mt-0 cursor-pointer ${
                                                                                             isDone
                                                                                                 ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-md'
                                                                                                 : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
@@ -1361,14 +1363,14 @@ export default function App() {
                             <button
                                 type="button"
                                 onClick={() => setShowClearConfirmModal(false)}
-                                className="flex-1 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold text-xs transition-colors"
+                                className="flex-1 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold text-xs transition-colors cursor-pointer"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="button"
                                 onClick={handleClearAllData}
-                                className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-xs shadow-lg shadow-red-500/20 transition-colors"
+                                className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-xs shadow-lg shadow-red-500/20 transition-colors cursor-pointer"
                             >
                                 Yes, Clear All
                             </button>
@@ -1399,7 +1401,7 @@ export default function App() {
                             <button
                                 type="button"
                                 onClick={() => addTimerSeconds(30)}
-                                className="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-bold rounded-lg border border-gray-700 transition-colors"
+                                className="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-bold rounded-lg border border-gray-700 transition-colors cursor-pointer"
                                 title="Add 30 Seconds"
                             >
                                 +30s
@@ -1408,7 +1410,7 @@ export default function App() {
                             <button
                                 type="button"
                                 onClick={togglePauseTimer}
-                                className="p-2 bg-pink-500 hover:bg-pink-600 rounded-lg text-white transition-colors active:scale-95"
+                                className="p-2 bg-pink-500 hover:bg-pink-600 rounded-lg text-white transition-colors active:scale-95 cursor-pointer"
                                 title={timerState.isRunning ? 'Pause' : 'Resume'}
                             >
                                 {timerState.isRunning ? <PauseIcon /> : <PlayIcon />}
@@ -1417,7 +1419,7 @@ export default function App() {
                             <button
                                 type="button"
                                 onClick={resetTimer}
-                                className="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-bold rounded-lg border border-gray-700 transition-colors"
+                                className="px-2 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-bold rounded-lg border border-gray-700 transition-colors cursor-pointer"
                                 title="Reset Timer"
                             >
                                 Reset
@@ -1426,7 +1428,7 @@ export default function App() {
                             <button
                                 type="button"
                                 onClick={dismissTimer}
-                                className="p-1.5 text-gray-400 hover:text-white rounded-lg transition-colors"
+                                className="p-1.5 text-gray-400 hover:text-white rounded-lg transition-colors cursor-pointer"
                                 title="Close Timer"
                             >
                                 <CloseIcon />
