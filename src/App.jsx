@@ -1159,29 +1159,29 @@ export default function App() {
                                                                         return (
                                                                             <div 
                                                                                 key={i} 
-                                                                                className={`flex items-center justify-between gap-2 p-2 rounded-lg border transition-all ${
+                                                                                className={`flex items-center justify-between gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-lg border transition-all overflow-x-auto ${
                                                                                     isDone 
                                                                                         ? 'bg-pink-500/10 border-pink-500/30' 
                                                                                         : 'bg-[#0f0f13] border-gray-800/80'
                                                                                 }`}
                                                                             >
-                                                                                <span className="text-xs font-bold text-gray-300 w-12 shrink-0">
+                                                                                <span className="text-xs font-bold text-gray-300 w-10 sm:w-12 shrink-0">
                                                                                     Set {i + 1}
                                                                                 </span>
 
                                                                                 {isSessionActive ? (
-                                                                                    <div className="flex items-center justify-center gap-2 flex-1">
+                                                                                    <div className="flex items-center justify-center gap-1 sm:gap-2 flex-1 min-w-0">
                                                                                         {/* Weight Stepper */}
                                                                                         <div className="flex items-center gap-0.5 bg-[#181822] rounded-md p-0.5 border border-gray-700/80 shrink-0">
                                                                                             <button
                                                                                                 type="button"
                                                                                                 onClick={() => adjustWeight(ex.id, i, -2.5)}
-                                                                                                className="w-6 h-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 active:bg-pink-600 rounded text-gray-300 hover:text-white transition-colors"
+                                                                                                className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 active:bg-pink-600 rounded text-gray-300 hover:text-white transition-colors"
                                                                                             >
                                                                                                 <MinusIcon />
                                                                                             </button>
 
-                                                                                            <div className="flex items-center justify-center px-1">
+                                                                                            <div className="flex items-center justify-center px-0.5 sm:px-1">
                                                                                                 <input
                                                                                                     type="number"
                                                                                                     step="0.5"
@@ -1189,7 +1189,7 @@ export default function App() {
                                                                                                     value={weightValue}
                                                                                                     onChange={(e) => handleSetWeightChange(ex.id, i, e.target.value)}
                                                                                                     placeholder="0"
-                                                                                                    className="w-8 bg-transparent border-none p-0 text-xs font-bold text-white text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                                                                    className="w-7 sm:w-8 bg-transparent border-none p-0 text-xs font-bold text-white text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                                                                 />
                                                                                                 <span className="text-[10px] font-bold text-gray-400 ml-0.5 select-none">
                                                                                                     kg
@@ -1199,7 +1199,7 @@ export default function App() {
                                                                                             <button
                                                                                                 type="button"
                                                                                                 onClick={() => adjustWeight(ex.id, i, 2.5)}
-                                                                                                className="w-6 h-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 active:bg-pink-600 rounded text-gray-300 hover:text-white transition-colors"
+                                                                                                className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 active:bg-pink-600 rounded text-gray-300 hover:text-white transition-colors"
                                                                                             >
                                                                                                 <PlusIcon />
                                                                                             </button>
@@ -1210,19 +1210,19 @@ export default function App() {
                                                                                             <button
                                                                                                 type="button"
                                                                                                 onClick={() => adjustReps(ex.id, i, -1)}
-                                                                                                className="w-6 h-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 active:bg-pink-600 rounded text-gray-300 hover:text-white transition-colors"
+                                                                                                className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 active:bg-pink-600 rounded text-gray-300 hover:text-white transition-colors"
                                                                                             >
                                                                                                 <MinusIcon />
                                                                                             </button>
 
-                                                                                            <div className="flex items-center justify-center px-1">
+                                                                                            <div className="flex items-center justify-center px-0.5 sm:px-1">
                                                                                                 <input
                                                                                                     type="number"
                                                                                                     min="0"
                                                                                                     value={repsValue}
                                                                                                     onChange={(e) => handleSetRepsChange(ex.id, i, e.target.value)}
                                                                                                     placeholder="0"
-                                                                                                    className="w-8 bg-transparent border-none p-0 text-xs font-bold text-white text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                                                                    className="w-7 sm:w-8 bg-transparent border-none p-0 text-xs font-bold text-white text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                                                                 />
                                                                                                 <span className="text-[10px] font-bold text-gray-400 ml-0.5 select-none whitespace-nowrap">
                                                                                                     reps
@@ -1232,7 +1232,7 @@ export default function App() {
                                                                                             <button
                                                                                                 type="button"
                                                                                                 onClick={() => adjustReps(ex.id, i, 1)}
-                                                                                                className="w-6 h-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 active:bg-pink-600 rounded text-gray-300 hover:text-white transition-colors"
+                                                                                                className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 active:bg-pink-600 rounded text-gray-300 hover:text-white transition-colors"
                                                                                             >
                                                                                                 <PlusIcon />
                                                                                             </button>
@@ -1249,7 +1249,7 @@ export default function App() {
                                                                                     <button
                                                                                         type="button"
                                                                                         onClick={() => toggleSetComplete(ex.id, i, ex.name, getExerciseTimerSec(ex))}
-                                                                                        className={`w-16 h-8 flex items-center justify-center gap-1 rounded-md text-xs font-bold transition-colors shrink-0 active:scale-95 ${
+                                                                                        className={`w-14 sm:w-16 h-7 sm:h-8 flex items-center justify-center gap-1 rounded-md text-[11px] sm:text-xs font-bold transition-colors shrink-0 active:scale-95 ${
                                                                                             isDone
                                                                                                 ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-md'
                                                                                                 : 'bg-gray-800/60 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
@@ -1259,7 +1259,7 @@ export default function App() {
                                                                                         <span>{isDone ? 'Done' : 'Log'}</span>
                                                                                     </button>
                                                                                 ) : (
-                                                                                    <div className="w-16 h-8 shrink-0"></div>
+                                                                                    <div className="w-14 sm:w-16 h-7 sm:h-8 shrink-0"></div>
                                                                                 )}
                                                                             </div>
                                                                         );
