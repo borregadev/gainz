@@ -135,6 +135,12 @@ const ChevronRightIcon = () => (
     </svg>
 );
 
+const TrashIcon = () => (
+    <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+    </svg>
+);
+
 const routineData = [
     {
         id: "day1",
@@ -186,6 +192,7 @@ export default function App() {
     const [selectedRoutineId] = useState("routine_split_3day");
     const [activeTab, setActiveTab] = useState("day1");
     const [isRoutineVisible, setIsRoutineVisible] = useState(true);
+    const [showClearConfirmModal, setShowClearConfirmModal] = useState(false);
     
     // Custom timer durations per exercise ID (in seconds)
     const [customExerciseTimers, setCustomExerciseTimers] = useState({});
@@ -221,6 +228,10 @@ export default function App() {
 
     const [currentDisplaySec, setCurrentDisplaySec] = useState(0);
     const timerIntervalRef = useRef(null);
+
+    useEffect(() => {
+        document.title = "Gainz";
+    }, []);
 
     const playTimerFinishedSound = () => {
         try {
@@ -263,7 +274,6 @@ export default function App() {
     });
 
     useEffect(() => {
-        // Load local storage fallback initially so the app works immediately
         try {
             const savedData = localStorage.getItem('gainz_tracker_local_data');
             if (savedData) {
@@ -289,7 +299,7 @@ export default function App() {
                     await signInAnonymously(auth);
                 }
             } catch (err) {
-                console.warn("Firebase auth not configured or token invalid. App running in local mode:", err.message);
+                console.warn("Firebase auth not configured. App running in local mode:", err.message);
             }
         };
         
@@ -332,7 +342,6 @@ export default function App() {
     }, [user]);
 
     const syncDataToCloud = async (updatedFields) => {
-        // Save to LocalStorage immediately so local state is never lost
         try {
             const currentLocal = JSON.parse(localStorage.getItem('gainz_tracker_local_data') || '{}');
             const merged = { ...currentLocal, ...updatedFields };
@@ -341,7 +350,6 @@ export default function App() {
             console.error("LocalStorage save error:", e);
         }
 
-        // Save to Firestore if user & database connection are present
         if (!user || !db) return;
         try {
             const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'workout_tracker', 'data');
@@ -349,6 +357,48 @@ export default function App() {
         } catch (err) {
             console.warn("Failed to sync data to Firestore (saved locally instead):", err.message);
         }
+    };
+
+    const handleClearAllData = async () => {
+        setCompletedWorkoutLogs({});
+        setSetWeights({});
+        setSetReps({});
+        setCompletedSets({});
+        setWorkoutSummaries({});
+        setCustomExerciseTimers({});
+        
+        const resetNotes = {};
+        routineData.forEach(day => {
+            day.exercises.forEach(ex => {
+                resetNotes[ex.id] = ex.note;
+            });
+        });
+        setUserNotes(resetNotes);
+
+        try {
+            localStorage.removeItem('gainz_tracker_local_data');
+        } catch (e) {
+            console.error("Error clearing local storage:", e);
+        }
+
+        if (user && db) {
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'workout_tracker', 'data');
+                await setDoc(docRef, {
+                    completedWorkoutLogs: {},
+                    setWeights: {},
+                    setReps: {},
+                    completedSets: {},
+                    workoutSummaries: {},
+                    userNotes: resetNotes,
+                    customExerciseTimers: {}
+                });
+            } catch (err) {
+                console.warn("Error clearing Firestore data:", err);
+            }
+        }
+
+        setShowClearConfirmModal(false);
     };
 
     const handleStartEditingTimer = (ex) => {
@@ -424,25 +474,6 @@ export default function App() {
 
         return () => clearInterval(timerIntervalRef.current);
     }, [timerState.active, timerState.isRunning, timerState.targetEndTime, timerState.pausedTimeRemaining, timerState.isFinished]);
-
-    useEffect(() => {
-        const handleVisibilityChange = () => {
-            if (document.visibilityState === 'visible' && timerState.active && timerState.isRunning && timerState.targetEndTime) {
-                const now = Date.now();
-                const diffMs = timerState.targetEndTime - now;
-                const remainingSec = Math.max(0, Math.ceil(diffMs / 1000));
-
-                setCurrentDisplaySec(remainingSec);
-                if (remainingSec <= 0 && !timerState.isFinished) {
-                    setTimerState(prev => ({ ...prev, isRunning: false, isFinished: true }));
-                    playTimerFinishedSound();
-                }
-            }
-        };
-
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-    }, [timerState.active, timerState.isRunning, timerState.targetEndTime, timerState.isFinished]);
 
     const startWorkoutDay = (dayId) => {
         setActiveWorkout({
@@ -976,6 +1007,19 @@ export default function App() {
                                 </div>
                             </div>
                         </div>
+
+                        {/* Clear Stored Data Action moved to Insights Tab */}
+                        <div className="pt-6 pb-2 flex flex-col items-center justify-center">
+                            <button
+                                type="button"
+                                onClick={() => setShowClearConfirmModal(true)}
+                                className="px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-bold text-xs flex items-center gap-2 transition-all active:scale-95"
+                            >
+                                <TrashIcon />
+                                <span>Clear All Stored Data</span>
+                            </button>
+                            <span className="text-[10px] text-gray-600 mt-2">Resets all logged sets, weight history, and custom rest timers</span>
+                        </div>
                     </div>
                 ) : (
                     <div className="space-y-6">
@@ -1003,6 +1047,7 @@ export default function App() {
                                     {/* Day Header Bar */}
                                     <div className="px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-800/40">
                                         <button 
+                                            type="button"
                                             onClick={() => setActiveTab(activeTab === day.id ? null : day.id)}
                                             className="flex items-center justify-between sm:justify-start gap-3 text-left focus:outline-none hover:opacity-80 transition-opacity w-full sm:w-auto"
                                         >
@@ -1081,7 +1126,7 @@ export default function App() {
                                                                     {editingTimerExId === ex.id ? (
                                                                         <div className="flex items-center gap-1.5 bg-[#181822] p-1.5 rounded-lg border border-indigo-500/50 shadow-md">
                                                                             <ClockIcon />
-                                                                            <div className="flex items-center gap-0.5 bg-[#0f0f13] px-1 py-0.5 rounded border border-gray-700">
+                                                                            <div className="flex items-center justify-center gap-0.5 bg-[#0f0f13] px-1 py-0.5 rounded border border-gray-700">
                                                                                 <input
                                                                                     type="number"
                                                                                     min="0"
@@ -1095,7 +1140,7 @@ export default function App() {
                                                                                 <span className="text-[10px] text-gray-400 font-bold">m</span>
                                                                             </div>
                                                                             <span className="text-gray-500 font-bold text-xs">:</span>
-                                                                            <div className="flex items-center gap-0.5 bg-[#0f0f13] px-1 py-0.5 rounded border border-gray-700">
+                                                                            <div className="flex items-center justify-center gap-0.5 bg-[#0f0f13] px-1 py-0.5 rounded border border-gray-700">
                                                                                 <input
                                                                                     type="number"
                                                                                     min="0"
@@ -1149,7 +1194,7 @@ export default function App() {
                                                                     <span className="text-[11px] text-gray-500 font-normal">Weight & Reps</span>
                                                                 </div>
 
-                                                                <div className="space-y-2 pt-1">
+                                                                <div className="space-y-2.5 pt-1">
                                                                     {Array.from({ length: ex.sets }).map((_, i) => {
                                                                         const setKey = `${ex.id}_set_${i}`;
                                                                         const isDone = !!completedSets[setKey];
@@ -1159,107 +1204,108 @@ export default function App() {
                                                                         return (
                                                                             <div 
                                                                                 key={i} 
-                                                                                className={`flex items-center justify-between gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-lg border transition-all overflow-x-auto ${
+                                                                                className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-2.5 sm:p-3 rounded-lg border transition-all ${
                                                                                     isDone 
                                                                                         ? 'bg-pink-500/10 border-pink-500/30' 
                                                                                         : 'bg-[#0f0f13] border-gray-800/80'
                                                                                 }`}
                                                                             >
-                                                                                <span className="text-xs font-bold text-gray-300 w-10 sm:w-12 shrink-0">
-                                                                                    Set {i + 1}
-                                                                                </span>
+                                                                                {/* Top Row: Set Number & Inputs Centered */}
+                                                                                <div className="flex items-center justify-between gap-2 w-full sm:w-auto">
+                                                                                    <span className="text-xs font-bold text-gray-300 w-12 shrink-0">
+                                                                                        Set {i + 1}
+                                                                                    </span>
 
-                                                                                {isSessionActive ? (
-                                                                                    <div className="flex items-center justify-center gap-1 sm:gap-2 flex-1 min-w-0">
-                                                                                        {/* Weight Stepper */}
-                                                                                        <div className="flex items-center gap-0.5 bg-[#181822] rounded-md p-0.5 border border-gray-700/80 shrink-0">
-                                                                                            <button
-                                                                                                type="button"
-                                                                                                onClick={() => adjustWeight(ex.id, i, -2.5)}
-                                                                                                className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 active:bg-pink-600 rounded text-gray-300 hover:text-white transition-colors"
-                                                                                            >
-                                                                                                <MinusIcon />
-                                                                                            </button>
+                                                                                    {isSessionActive ? (
+                                                                                        <div className="flex items-center justify-center gap-2 flex-1 sm:flex-initial">
+                                                                                            {/* Weight Stepper */}
+                                                                                            <div className="flex items-center justify-center gap-0.5 bg-[#181822] rounded-md p-0.5 border border-gray-700/80 shrink-0">
+                                                                                                <button
+                                                                                                    type="button"
+                                                                                                    onClick={() => adjustWeight(ex.id, i, -2.5)}
+                                                                                                    className="w-6 h-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 active:bg-pink-600 rounded text-gray-300 hover:text-white transition-colors"
+                                                                                                >
+                                                                                                    <MinusIcon />
+                                                                                                </button>
 
-                                                                                            <div className="flex items-center justify-center px-0.5 sm:px-1">
-                                                                                                <input
-                                                                                                    type="number"
-                                                                                                    step="0.5"
-                                                                                                    min="0"
-                                                                                                    value={weightValue}
-                                                                                                    onChange={(e) => handleSetWeightChange(ex.id, i, e.target.value)}
-                                                                                                    placeholder="0"
-                                                                                                    className="w-7 sm:w-8 bg-transparent border-none p-0 text-xs font-bold text-white text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                                                                                />
-                                                                                                <span className="text-[10px] font-bold text-gray-400 ml-0.5 select-none">
-                                                                                                    kg
-                                                                                                </span>
+                                                                                                <div className="flex items-center justify-center px-1">
+                                                                                                    <input
+                                                                                                        type="number"
+                                                                                                        step="0.5"
+                                                                                                        min="0"
+                                                                                                        value={weightValue}
+                                                                                                        onChange={(e) => handleSetWeightChange(ex.id, i, e.target.value)}
+                                                                                                        placeholder="0"
+                                                                                                        className="w-9 bg-transparent border-none p-0 text-xs font-bold text-white text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                                                                    />
+                                                                                                    <span className="text-[10px] font-bold text-gray-400 ml-0.5 select-none">
+                                                                                                        kg
+                                                                                                    </span>
+                                                                                                </div>
+
+                                                                                                <button
+                                                                                                    type="button"
+                                                                                                    onClick={() => adjustWeight(ex.id, i, 2.5)}
+                                                                                                    className="w-6 h-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 active:bg-pink-600 rounded text-gray-300 hover:text-white transition-colors"
+                                                                                                >
+                                                                                                    <PlusIcon />
+                                                                                                </button>
                                                                                             </div>
 
-                                                                                            <button
-                                                                                                type="button"
-                                                                                                onClick={() => adjustWeight(ex.id, i, 2.5)}
-                                                                                                className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 active:bg-pink-600 rounded text-gray-300 hover:text-white transition-colors"
-                                                                                            >
-                                                                                                <PlusIcon />
-                                                                                            </button>
-                                                                                        </div>
+                                                                                            {/* Reps Stepper */}
+                                                                                            <div className="flex items-center justify-center gap-0.5 bg-[#181822] rounded-md p-0.5 border border-gray-700/80 shrink-0">
+                                                                                                <button
+                                                                                                    type="button"
+                                                                                                    onClick={() => adjustReps(ex.id, i, -1)}
+                                                                                                    className="w-6 h-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 active:bg-pink-600 rounded text-gray-300 hover:text-white transition-colors"
+                                                                                                >
+                                                                                                    <MinusIcon />
+                                                                                                </button>
 
-                                                                                        {/* Reps Stepper */}
-                                                                                        <div className="flex items-center gap-0.5 bg-[#181822] rounded-md p-0.5 border border-gray-700/80 shrink-0">
-                                                                                            <button
-                                                                                                type="button"
-                                                                                                onClick={() => adjustReps(ex.id, i, -1)}
-                                                                                                className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 active:bg-pink-600 rounded text-gray-300 hover:text-white transition-colors"
-                                                                                            >
-                                                                                                <MinusIcon />
-                                                                                            </button>
+                                                                                                <div className="flex items-center justify-center px-1">
+                                                                                                    <input
+                                                                                                        type="number"
+                                                                                                        min="0"
+                                                                                                        value={repsValue}
+                                                                                                        onChange={(e) => handleSetRepsChange(ex.id, i, e.target.value)}
+                                                                                                        placeholder="0"
+                                                                                                        className="w-8 bg-transparent border-none p-0 text-xs font-bold text-white text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                                                                    />
+                                                                                                    <span className="text-[10px] font-bold text-gray-400 ml-0.5 select-none whitespace-nowrap">
+                                                                                                        reps
+                                                                                                    </span>
+                                                                                                </div>
 
-                                                                                            <div className="flex items-center justify-center px-0.5 sm:px-1">
-                                                                                                <input
-                                                                                                    type="number"
-                                                                                                    min="0"
-                                                                                                    value={repsValue}
-                                                                                                    onChange={(e) => handleSetRepsChange(ex.id, i, e.target.value)}
-                                                                                                    placeholder="0"
-                                                                                                    className="w-7 sm:w-8 bg-transparent border-none p-0 text-xs font-bold text-white text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                                                                                />
-                                                                                                <span className="text-[10px] font-bold text-gray-400 ml-0.5 select-none whitespace-nowrap">
-                                                                                                    reps
-                                                                                                </span>
+                                                                                                <button
+                                                                                                    type="button"
+                                                                                                    onClick={() => adjustReps(ex.id, i, 1)}
+                                                                                                    className="w-6 h-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 active:bg-pink-600 rounded text-gray-300 hover:text-white transition-colors"
+                                                                                                >
+                                                                                                    <PlusIcon />
+                                                                                                </button>
                                                                                             </div>
-
-                                                                                            <button
-                                                                                                type="button"
-                                                                                                onClick={() => adjustReps(ex.id, i, 1)}
-                                                                                                className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 active:bg-pink-600 rounded text-gray-300 hover:text-white transition-colors"
-                                                                                            >
-                                                                                                <PlusIcon />
-                                                                                            </button>
                                                                                         </div>
-                                                                                    </div>
-                                                                                ) : (
-                                                                                    <div className="flex-1 flex justify-center text-xs text-gray-500 italic">
-                                                                                        Press "Start Workout" to log sets
-                                                                                    </div>
-                                                                                )}
+                                                                                    ) : (
+                                                                                        <div className="text-xs text-gray-500 italic">
+                                                                                            Start workout to log sets
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
 
-                                                                                {/* Log Set Button */}
-                                                                                {isSessionActive ? (
+                                                                                {/* Bottom Row on Mobile / Inline on Desktop */}
+                                                                                {isSessionActive && (
                                                                                     <button
                                                                                         type="button"
                                                                                         onClick={() => toggleSetComplete(ex.id, i, ex.name, getExerciseTimerSec(ex))}
-                                                                                        className={`w-14 sm:w-16 h-7 sm:h-8 flex items-center justify-center gap-1 rounded-md text-[11px] sm:text-xs font-bold transition-colors shrink-0 active:scale-95 ${
+                                                                                        className={`w-full sm:w-20 h-10 sm:h-8 flex items-center justify-center gap-1.5 rounded-lg text-xs font-bold transition-all active:scale-95 shrink-0 ${
                                                                                             isDone
                                                                                                 ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-md'
-                                                                                                : 'bg-gray-800/60 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
+                                                                                                : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
                                                                                         }`}
                                                                                     >
                                                                                         {isDone ? <CheckIcon /> : null}
-                                                                                        <span>{isDone ? 'Done' : 'Log'}</span>
+                                                                                        <span>{isDone ? 'Done' : 'Log Set'}</span>
                                                                                     </button>
-                                                                                ) : (
-                                                                                    <div className="w-14 sm:w-16 h-7 sm:h-8 shrink-0"></div>
                                                                                 )}
                                                                             </div>
                                                                         );
@@ -1295,6 +1341,41 @@ export default function App() {
                     </div>
                 )}
             </main>
+
+            {/* Clear Data Confirmation Modal */}
+            {showClearConfirmModal && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-[#181824] border border-gray-800 rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
+                        <div className="flex items-center gap-3 text-red-400">
+                            <div className="p-2 bg-red-500/10 rounded-xl">
+                                <TrashIcon />
+                            </div>
+                            <h3 className="text-lg font-bold text-white">Reset All Tracker Data?</h3>
+                        </div>
+
+                        <p className="text-xs text-gray-400 leading-relaxed">
+                            This action will permanently delete all completed workouts, logged set history, saved weight entries, and custom timers. This cannot be undone.
+                        </p>
+
+                        <div className="flex items-center gap-3 pt-2">
+                            <button
+                                type="button"
+                                onClick={() => setShowClearConfirmModal(false)}
+                                className="flex-1 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold text-xs transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleClearAllData}
+                                className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-xs shadow-lg shadow-red-500/20 transition-colors"
+                            >
+                                Yes, Clear All
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Floating Rest Countdown Bar */}
             {timerState.active && (
