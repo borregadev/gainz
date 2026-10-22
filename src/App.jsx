@@ -141,6 +141,12 @@ const TrashIcon = () => (
     </svg>
 );
 
+const FireIcon = () => (
+    <svg className="w-5 h-5 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+    </svg>
+);
+
 const routineData = [
     {
         id: "day1",
@@ -709,6 +715,28 @@ export default function App() {
         ? Math.round((totalCompletedSetsCount / totalPossibleSets) * 100) 
         : 0;
 
+    // Calculate Workouts This Week (starting from Monday of current week)
+    const getWorkoutsThisWeekCount = () => {
+        const now = new Date();
+        const currentDayOfWeek = now.getDay(); // 0 is Sunday
+        const distanceToMonday = (currentDayOfWeek + 6) % 7;
+        const monday = new Date(now);
+        monday.setDate(now.getDate() - distanceToMonday);
+        monday.setHours(0, 0, 0, 0);
+
+        let count = 0;
+        Object.entries(completedWorkoutLogs).forEach(([dateStr, logs]) => {
+            const [y, m, d] = dateStr.split('-').map(Number);
+            const logDate = new Date(y, m - 1, d);
+            if (logDate >= monday && logDate <= now) {
+                count += logs.length;
+            }
+        });
+        return count;
+    };
+
+    const workoutsThisWeek = getWorkoutsThisWeekCount();
+
     const getDaysInMonth = (y, m) => new Date(y, m + 1, 0).getDate();
     const getFirstDayOfMonth = (y, m) => new Date(y, m, 1).getDay();
 
@@ -771,7 +799,15 @@ export default function App() {
                 {mainTab === "insights" ? (
                     <div className="space-y-6 animate-in fade-in duration-300">
                         {/* Summary Overview Cards Grid */}
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                            <div className="bg-[#181820] border border-gray-800 rounded-2xl p-4 shadow-lg flex flex-col items-start">
+                                <div className="p-2 bg-orange-500/10 rounded-lg mb-2">
+                                    <FireIcon />
+                                </div>
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-gray-400">This Week</span>
+                                <span className="text-xl font-black text-orange-400 mt-0.5">{workoutsThisWeek} <span className="text-xs text-gray-400 font-normal">session{workoutsThisWeek === 1 ? '' : 's'}</span></span>
+                            </div>
+
                             <div className="bg-[#181820] border border-gray-800 rounded-2xl p-4 shadow-lg flex flex-col items-start">
                                 <div className="p-2 bg-pink-500/10 rounded-lg mb-2">
                                     <ActivityIcon />
@@ -784,8 +820,8 @@ export default function App() {
                                 <div className="p-2 bg-purple-500/10 rounded-lg mb-2">
                                     <CheckCircleIcon />
                                 </div>
-                                <span className="text-[10px] uppercase font-bold tracking-wider text-gray-400">Finished Workouts</span>
-                                <span className="text-xl font-black text-emerald-400 mt-0.5">{totalWorkoutsLoggedCount} <span className="text-xs text-gray-400 font-normal">sessions</span></span>
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-gray-400">All Sessions</span>
+                                <span className="text-xl font-black text-emerald-400 mt-0.5">{totalWorkoutsLoggedCount}</span>
                             </div>
 
                             <div className="bg-[#181820] border border-gray-800 rounded-2xl p-4 shadow-lg flex flex-col items-start">
@@ -796,7 +832,7 @@ export default function App() {
                                 <span className="text-xl font-black text-white mt-0.5">{maxWeightLifted} <span className="text-xs text-gray-400 font-normal">kg</span></span>
                             </div>
 
-                            <div className="bg-[#181820] border border-gray-800 rounded-2xl p-4 shadow-lg flex flex-col items-start">
+                            <div className="bg-[#181820] border border-gray-800 rounded-2xl p-4 shadow-lg flex flex-col items-start col-span-2 sm:col-span-1">
                                 <div className="p-2 bg-indigo-500/10 rounded-lg mb-2">
                                     <CalendarIcon />
                                 </div>
@@ -1194,7 +1230,6 @@ export default function App() {
                                                                     <span className="text-[11px] text-gray-500 font-normal">Weight & Reps</span>
                                                                 </div>
 
-                                                                {}
                                                                 <div className="space-y-3 pt-1">
                                                                     {Array.from({ length: ex.sets }).map((_, i) => {
                                                                         const setKey = `${ex.id}_set_${i}`;
@@ -1205,7 +1240,7 @@ export default function App() {
                                                                         return (
                                                                             <div 
                                                                                 key={i} 
-                                                                                className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 p-3 rounded-lg border transition-all ${
+                                                                                className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 p-3 rounded-lg border transition-all ${
                                                                                     isDone 
                                                                                         ? 'bg-pink-500/10 border-pink-500/30' 
                                                                                         : 'bg-[#0f0f13] border-gray-800/80'
@@ -1220,7 +1255,7 @@ export default function App() {
 
                                                                                 {/* ROW 2 (Mobile): Weight & Reps Stepper Controls */}
                                                                                 {isSessionActive ? (
-                                                                                    <div className="flex items-center justify-center gap-3 w-full sm:w-auto my-1 sm:my-0">
+                                                                                    <div className="flex items-center justify-center gap-3 w-full sm:w-auto my-0.5 sm:my-0">
                                                                                         {/* Weight Stepper */}
                                                                                         <div className="flex items-center justify-center gap-0.5 bg-[#181822] rounded-md p-1 border border-gray-700/80 shrink-0">
                                                                                             <button
@@ -1299,7 +1334,7 @@ export default function App() {
                                                                                     <button
                                                                                         type="button"
                                                                                         onClick={() => toggleSetComplete(ex.id, i, ex.name, getExerciseTimerSec(ex))}
-                                                                                        className={`w-full sm:w-20 h-10 sm:h-8 flex items-center justify-center gap-1.5 rounded-lg text-xs font-bold transition-all active:scale-95 shrink-0 mt-1 sm:mt-0 cursor-pointer ${
+                                                                                        className={`w-full sm:w-20 h-10 sm:h-8 flex items-center justify-center gap-1.5 rounded-lg text-xs font-bold transition-all active:scale-95 shrink-0 cursor-pointer ${
                                                                                             isDone
                                                                                                 ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-md'
                                                                                                 : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
